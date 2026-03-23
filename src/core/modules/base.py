@@ -29,9 +29,8 @@ class BaseModule(ModuleEngine):
     def from_builded(
         cls, engine_name: LowercaseStrEnum, *args, **kwargs
     ) -> ModuleEngine:
-        assert (
-            engine_name in cls._module_mapping.keys()
-        ), f"Engine {engine_name} not found in ModuleNames"
+        if engine_name not in cls._module_mapping:
+            raise ValueError(f"Engine {engine_name} not found in ModuleNames")
 
         instance = cls()
         instance.engine_name = engine_name
@@ -42,3 +41,8 @@ class BaseModule(ModuleEngine):
 
     def execute(self, *args, **kwargs):
         return self._module.execute(*args, **kwargs)
+
+    def is_healthy(self) -> bool:
+        if self._module is None:
+            return False
+        return self._module.is_healthy()

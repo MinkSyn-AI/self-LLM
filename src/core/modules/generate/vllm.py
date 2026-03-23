@@ -34,8 +34,9 @@ class vLLMGeneratorEngine(ModuleEngine):
 
     def execute(self, prompt: str, **kwargs):
         try:
+            messages = prompt if isinstance(prompt, list) else [{"role": "user", "content": prompt}]
             response = self.client.chat.completions.create(
-                model=self.name, messages=prompt
+                model=self.name, messages=messages
             )
             return response.choices[0].message.content
 

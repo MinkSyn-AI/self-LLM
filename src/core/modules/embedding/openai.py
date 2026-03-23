@@ -23,7 +23,7 @@ class OpenAIEmbeddingEngine(ModuleEngine):
         cls.dimensions = dimensions
         cls.apiKey = apiKey or os.getenv("OPENAI_API_KEY")
         cls.orgId = orgId or os.getenv("OPENAI_ORG_ID")
-        cls.baseUrl = orgId or os.getenv("OPENAI_BASE_URL")
+        cls.baseUrl = kwargs.get("baseUrl") or os.getenv("OPENAI_BASE_URL")
 
         if not cls.apiKey:
             raise ValueError("The OpenAI API key must not be 'None'.")
@@ -38,7 +38,7 @@ class OpenAIEmbeddingEngine(ModuleEngine):
                 f"OpenAI API client failed to initialize. Error: {e}"
             ) from e
 
-        return cls
+        return cls()
 
     def execute(self, docs: List[str], **kwargs):
         try:

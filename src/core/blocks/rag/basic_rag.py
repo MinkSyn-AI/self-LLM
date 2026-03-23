@@ -1,3 +1,5 @@
+from typing import Any
+
 from loguru import logger
 
 from core.blocks.base import BaseBlocker
@@ -33,17 +35,25 @@ class RAGBasicBlocker(BaseBlocker):
 
     def search_embedding(self, user_query: str, **kwargs) -> list[str]:
         query_embedding = self.get_embedding(user_query)
-        return self.retriever.execute(
-            query_embedding, kwargs.get('limit_embedding', 5), **kwargs
-        )
+        if not query_embedding:
+            return []
+        return self.retriever.execute(query_embedding, **kwargs)
 
     def generate_response(
-        self, user_query: str, retrieved_docs: list[str] = [], **kwargs
-    ) -> dict[str, any]:
+        self, user_query: str, retrieved_docs: list[Any] | None = None, **kwargs
+    ) -> dict[str, Any]:
+        retrieved_docs = retrieved_docs or []
         if not retrieved_docs:
-            return self.generator.execute(user_query, **kwargs)
+            return self.generator.execute(prompt=user_query, **kwargs)
 
-        context = "\n".join([doc for doc in retrieved_docs])
+        context_chunks = []
+        for doc in retrieved_docs:
+            if isinstance(doc, dict):
+                context_chunks.append(str(doc.get("combined_information", doc)))
+            else:
+                context_chunks.append(str(doc))
+
+        context = "\n".join(context_chunks)
         prompt = f"Context: {context}\n\nQuestion: {user_query}\n\nAnswer based on the context above:\n"
 
         return self.generator.execute(prompt=prompt, **kwargs)
@@ -51,8 +61,10 @@ class RAGBasicBlocker(BaseBlocker):
     def get_embedding(self, text: str):
         if not text.strip():
             return []
-
-        return self.embedder.execute(docs=[text])
+        embeddings = self.embedder.execute(docs=[text])
+        if not embeddings:
+            return []
+        return embeddings[0]
 
     def is_healthy(self) -> bool:
         checks: dict[str, BaseModule] = {

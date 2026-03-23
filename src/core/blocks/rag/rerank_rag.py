@@ -29,7 +29,14 @@ class RAGRerankBlocker(RAGBasicBlocker):
             retrieved_docs = self.search_embedding(user_query, **kwargs)
 
         if self.reranker.is_healthy() and retrieved_docs:
-            retrieved_docs = self.reranker.execute(user_query, retrieved_docs, **kwargs)
+            doc_texts = [
+                doc.get("combined_information", str(doc))
+                if isinstance(doc, dict)
+                else str(doc)
+                for doc in retrieved_docs
+            ]
+            _, ranked_passages = self.reranker.execute(user_query, doc_texts, **kwargs)
+            retrieved_docs = ranked_passages[: kwargs.get('limit_rerank', 5)]
         elif len(retrieved_docs) > kwargs.get('limit_rerank', 5):
             retrieved_docs = retrieved_docs[: kwargs.get('limit_rerank', 5)]
 

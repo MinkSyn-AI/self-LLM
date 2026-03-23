@@ -21,16 +21,15 @@ class CrossEncoderRerankEngine(ModuleEngine):
         return cls()
 
     def execute(self, query: str, passages: list[str], **kwargs):
+        if not passages:
+            return [], []
+
         query_passage_pairs = [[query, passage] for passage in passages]
 
         scores = self.reranker.predict(query_passage_pairs)
+        scored_passages = sorted(zip(scores, passages), key=lambda x: x[0], reverse=True)
 
-        ranked_passages = [
-            passage
-            for _, passage in sorted(
-                zip(scores, passages), key=lambda x: x[0], reverse=True
-            )
-        ]
-        ranked_scores = sorted([float(score) for score in ranked_scores], reverse=True)
+        ranked_scores = [float(score) for score, _ in scored_passages]
+        ranked_passages = [passage for _, passage in scored_passages]
 
         return ranked_scores, ranked_passages

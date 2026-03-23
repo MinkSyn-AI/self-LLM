@@ -1,3 +1,5 @@
+import os
+
 from core.blocks.rag import RAGBasicBlocker, RAGRerankBlocker
 from core.modules import (
     AutoEmbdeddingModule,
@@ -18,7 +20,7 @@ def _build_modules():
     # MongoDB Vector Search Configuration
     mongo_config = {
         "name": "vcm-mongodb",
-        "mongodbUri": "mongodb://ftecher:ftech132@160.30.129.168:27015/?authSource=admin",
+        "mongodbUri": os.getenv("MONGODB_URI"),
         "mongoCollection": "product_embeddings",
         "limit": 20,
     }
@@ -29,7 +31,7 @@ def _build_modules():
     # Gemini Generator Configuration
     gemini_config = {
         "name": "gemini-2.5-flash",
-        "api_key": "AIzaSyDogxB7Fr4zsbRWyohAyOnMK7oxqeWBSoM",
+        "api_key": os.getenv("GOOGLE_API_KEY"),
     }
     generator = AutoGeneratorModule.from_builded(
         engine_name=GeneratorName.Gemini, **gemini_config
@@ -62,13 +64,13 @@ def execute_rerank_rag_example(
     embedder: AutoEmbdeddingModule,
     reranker: AutoRerankModule,
 ):
-    # Example usage of RAGBasicBlocker
-    rag_blocker = RAGBasicBlocker(
+    # Example usage of RAGRerankBlocker
+    rag_blocker = RAGRerankBlocker(
         generator=generator, retriever=retriever, embedder=embedder, reranker=reranker
     )
 
     user_query = "What is the capital of France?"
-    response = rag_blocker.execute(user_query)
+    response = rag_blocker.execute(user_query=user_query)
     print(response)
 
 

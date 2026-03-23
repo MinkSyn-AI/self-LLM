@@ -10,13 +10,13 @@ class SemanticRouter(BaseBlocker):
 
         self.routesEmbedding = {}
         for route in self.routes:
-            self.routesEmbedding[route.name] = self.embedding.encode(route.samples)
+            self.routesEmbedding[route.name] = self._encode(route.samples)
 
     def get_routes(self):
         return self.routes
 
-    def _excute_base(self, query, **kwargs):
-        queryEmbedding = self.embedding.encode([query])
+    def _execute_base(self, query, **kwargs):
+        queryEmbedding = self._encode([query])
         queryEmbedding = queryEmbedding / np.linalg.norm(queryEmbedding)
         scores = []
 
@@ -30,3 +30,14 @@ class SemanticRouter(BaseBlocker):
 
         scores.sort(reverse=True)
         return scores[0]
+
+    # Backward-compatible alias in case other code still calls the typo.
+    def _excute_base(self, query, **kwargs):
+        return self._execute_base(query=query, **kwargs)
+
+    def _encode(self, docs):
+        if hasattr(self.embedding, "execute"):
+            encoded = self.embedding.execute(docs=docs)
+        else:
+            encoded = self.embedding.encode(docs)
+        return np.asarray(encoded)

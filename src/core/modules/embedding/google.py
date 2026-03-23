@@ -49,7 +49,7 @@ class GoogleEmbeddingEngine(ModuleEngine):
                 f"Failed to initialize Google AI Platform client. Error: {err}"
             ) from err
 
-        return cls
+        return cls()
 
     def execute(self, docs: List[str], **kwargs):
         try:

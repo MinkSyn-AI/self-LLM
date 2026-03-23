@@ -31,7 +31,7 @@ class QdrantVectorEngine(ModuleEngine):
         except Exception as e:
             raise ValueError(f"Qdrant failed to initialize. Error: {e}") from e
 
-        return cls
+        return cls()
 
     def execute(self, query_vector: Any, **kwargs):
         try:
